@@ -1978,6 +1978,13 @@ function logOutSession() {
 }
 
 function changeWorkspace() {
+  if (activeDrawer === 'notepad' && notepadDebounceTimeout) {
+    clearTimeout(notepadDebounceTimeout);
+    const ta = document.getElementById('notepad-ta');
+    if (dbRef && ta) {
+      dbRef.child('notepad').set(ta.value);
+    }
+  }
   if (dbRef) {
     dbRef.off();
   }
@@ -2119,6 +2126,13 @@ function openDrawer(mod) {
   }, 350);
 }
 function closeDrawer() {
+  if (activeDrawer === 'notepad' && notepadDebounceTimeout) {
+    clearTimeout(notepadDebounceTimeout);
+    const ta = document.getElementById('notepad-ta');
+    if (dbRef && ta) {
+      dbRef.child('notepad').set(ta.value);
+    }
+  }
   const drawer = document.getElementById('drawer');
   drawer.classList.remove('open');
   drawer.style.width = '';
@@ -2194,7 +2208,14 @@ function fmt(s) {
   return `${String(m).padStart(2,'0')}:${String(sc).padStart(2,'0')}`;
 }
 function setRing(frac) {
-  ringEl.style.strokeDashoffset = CIRC * (1 - Math.max(0, Math.min(1, frac)));
+  if (frac === 1 || frac === 0) {
+    ringEl.style.transition = 'none';
+    ringEl.style.strokeDashoffset = CIRC * (1 - Math.max(0, Math.min(1, frac)));
+    ringEl.offsetHeight;
+    ringEl.style.transition = '';
+  } else {
+    ringEl.style.strokeDashoffset = CIRC * (1 - Math.max(0, Math.min(1, frac)));
+  }
 }
 function updateDisplay() {
   if (timerMode === 'countdown') {
@@ -2624,7 +2645,8 @@ async function submitMath() {
   mathMessages.push({"role": "user", "content": query});
   const systemInstruction = mathMessages[0].content;
   const contents = [];
-  for (let i = 1; i < mathMessages.length; i++) {
+  const historyStart = Math.max(1, mathMessages.length - 10);
+  for (let i = historyStart; i < mathMessages.length; i++) {
     contents.push({
       role: mathMessages[i].role === 'assistant' ? 'model' : 'user',
       parts: [{text: mathMessages[i].content}]
