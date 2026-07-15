@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Unreserved</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Fira+Code:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -1694,20 +1695,11 @@ let db = null;
 let user = null;
 let sessionMode = null;
 let roomCode = "";
+let roomPassword = "";
 let dbRef = null;
 let isFirebaseInitialized = false;
 let notepadDebounceTimeout = null;
 
-function saveFirebaseConfig() {
-  const input = document.getElementById('fb-config-input').value.trim();
-  try {
-    const config = JSON.parse(input);
-    localStorage.setItem('unreserved_fb_config', JSON.stringify(config));
-    location.reload();
-  } catch (err) {
-    alert("Invalid Firebase Configuration format. Please paste valid JSON: " + err.message);
-  }
-}
 
 function initFirebase() {
   let savedConfig = localStorage.getItem('unreserved_fb_config');
@@ -2833,10 +2825,8 @@ function plotElLayout(divId, layout) {
 let chatRoomRef = null;
 let chatUsersRef = null;
 let chatMsgsRef = null;
-let roomPassword = "";
 let chatNickname = "";
 let chatUserStatus = "";
-let manualChatRoomCode = "";
 
 function initChatDrawerForSession() {
   document.getElementById('chat-private-box').style.display = 'none';
@@ -2853,13 +2843,7 @@ function initChatDrawerForSession() {
   }
   
   if (sessionMode === 'private') {
-    if (manualChatRoomCode) {
-      document.getElementById('chat-loading-box').style.display = 'block';
-      document.getElementById('chat-loading-box').querySelector('p').textContent = `Connecting to Room ${manualChatRoomCode}...`;
-      autoJoinChatRoom();
-    } else {
-      document.getElementById('chat-private-box').style.display = 'block';
-    }
+    document.getElementById('chat-private-box').style.display = 'block';
     return;
   }
   
@@ -2869,30 +2853,8 @@ function initChatDrawerForSession() {
   autoJoinChatRoom();
 }
 
-function joinManualChatRoom() {
-  const roomIdInput = document.getElementById('chat-manual-room-id').value.trim().toUpperCase();
-  const nicknameInput = document.getElementById('chat-manual-nickname').value.trim();
-  
-  if (!roomIdInput || !nicknameInput) {
-    alert("Please enter both Room ID and Nickname.");
-    return;
-  }
-  
-  manualChatRoomCode = roomIdInput;
-  chatNickname = nicknameInput;
-  
-  document.getElementById('chat-private-box').style.display = 'none';
-  document.getElementById('chat-loading-box').style.display = 'block';
-  document.getElementById('chat-loading-box').querySelector('p').textContent = `Connecting to Room ${manualChatRoomCode}...`;
-  
-  autoJoinChatRoom();
-}
-
 function autoJoinChatRoom() {
-  const activeRoom = manualChatRoomCode || roomCode;
-  if (!activeRoom) return;
-  
-  roomPassword = activeRoom;
+  if (!roomCode) return;
   
   const currentUser = firebase.auth().currentUser;
   const uid = currentUser.uid;
@@ -2908,11 +2870,11 @@ function autoJoinChatRoom() {
     }
   }
   
-  chatRoomRef = firebase.database().ref(`rooms/${activeRoom}`);
+  chatRoomRef = firebase.database().ref(`rooms/${roomCode}`);
   chatUsersRef = chatRoomRef.child(`users/${uid}`);
   chatMsgsRef = chatRoomRef.child('messages');
   
-  document.getElementById('chat-room-label').textContent = `Room: ${activeRoom}`;
+  document.getElementById('chat-room-label').textContent = `Room: ${roomCode}`;
   
   const isAdmin = (email.toLowerCase() === 'niravvikash2210@gmail.com');
   const initialStatus = isAdmin ? 'approved' : 'pending';
@@ -3098,29 +3060,6 @@ function clearRoomHistory() {
   if (!confirm("Are you sure you want to clear all chat messages in this room?")) return;
   if (chatMsgsRef) {
     chatMsgsRef.set(null);
-  }
-}
-
-function leaveRoomChat() {
-  if (chatRoomRef) chatRoomRef.child('users').off();
-  if (chatMsgsRef) chatMsgsRef.off();
-  if (chatUsersRef) chatUsersRef.child('status').off();
-  
-  chatRoomRef = null;
-  chatUsersRef = null;
-  chatMsgsRef = null;
-  roomPassword = "";
-  chatUserStatus = "";
-  
-  document.getElementById('chat-room-label').textContent = "Room: None";
-  document.getElementById('chat-messages').innerHTML = '';
-  
-  if (sessionMode === 'private') {
-    manualChatRoomCode = "";
-    chatNickname = "";
-    initChatDrawerForSession();
-  } else {
-    logOutSession();
   }
 }
 </script>
