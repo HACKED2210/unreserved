@@ -1683,8 +1683,12 @@ body {
           
           <!-- Nickname / Name Input -->
           <div class="fb-input-group" style="width: 100%;">
-            <label>My Nickname</label>
-            <input type="text" id="profile-name-input" class="fb-input" placeholder="Patrick Bateman" oninput="updateProfileName(this.value)">
+            <label>My Username (Unique)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="profile-name-input" class="fb-input" placeholder="Patrick Bateman">
+              <button class="nano-btn" onclick="saveProfileName()" style="padding: 10px 14px;">Save</button>
+            </div>
+            <span id="profile-notice" style="font-size: 10px; color: var(--green); margin-top: 4px; display: none;"></span>
           </div>
           
           <!-- User Email -->
@@ -3206,6 +3210,13 @@ function uploadProfilePic(event) {
     localStorage.setItem('unreserved_profile_pic', chatPhotoURL);
     document.getElementById('profile-pic-img').src = chatPhotoURL;
     
+    const currentUser = firebase.auth().currentUser;
+    if (currentUser) {
+      db.ref(`/users/${currentUser.uid}/profile`).update({
+        photoURL: chatPhotoURL
+      });
+    }
+    
     if (chatUsersRef) {
       chatUsersRef.child('photoURL').set(chatPhotoURL);
     }
@@ -3213,29 +3224,117 @@ function uploadProfilePic(event) {
   reader.readAsDataURL(file);
 }
 
-function updateProfileName(val) {
-  chatNickname = val.trim();
-  localStorage.setItem('unreserved_profile_name', chatNickname);
-  if (chatUsersRef) {
-    chatUsersRef.child('name').set(chatNickname);
+function saveProfileName() {
+  const inputEl = document.getElementById('profile-name-input');
+  const cleanUsername = inputEl.value.trim();
+  const noticeEl = document.getElementById('profile-notice');
+  
+  if (!cleanUsername) {
+    alert("Username cannot be empty.");
+    return;
   }
+  
+  const normalized = cleanUsername.toLowerCase().replace(/[^a-z0-9_]/g, '');
+  if (normalized.length < 3) {
+    alert("Username must be at least 3 characters and contain only letters, numbers, or underscores.");
+    return;
+  }
+  
+  const currentUser = firebase.auth().currentUser;
+  if (!currentUser) return;
+  const userEmail = currentUser.email || "guest@unreserved.com";
+  
+  const saveBtn = document.querySelector('button[onclick="saveProfileName()"]');
+  const originalText = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = "...";
+  
+  db.ref(`/usernames/${normalized}`).once('value').then(snapshot => {
+    const owner = snapshot.val();
+    if (owner && owner.email !== userEmail) {
+      alert(`The username "${cleanUsername}" is already taken by another user.`);
+      inputEl.value = chatNickname;
+      saveBtn.disabled = false;
+      saveBtn.textContent = originalText;
+    } else {
+      const oldName = localStorage.getItem('unreserved_profile_name') || "";
+      const oldNormalized = oldName.toLowerCase().replace(/[^a-z0-9_]/g, '');
+      if (oldNormalized && oldNormalized !== normalized) {
+        db.ref(`/usernames/${oldNormalized}`).set(null);
+      }
+      
+      db.ref(`/usernames/${normalized}`).set({
+        email: userEmail,
+        uid: currentUser.uid,
+        originalName: cleanUsername
+      }).then(() => {
+        chatNickname = cleanUsername;
+        localStorage.setItem('unreserved_profile_name', chatNickname);
+        
+        db.ref(`/users/${currentUser.uid}/profile`).update({
+          name: chatNickname
+        });
+        
+        if (chatUsersRef) {
+          chatUsersRef.child('name').set(chatNickname);
+        }
+        
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        
+        noticeEl.style.color = "var(--green)";
+        noticeEl.textContent = "Username saved successfully!";
+        noticeEl.style.display = "block";
+        setTimeout(() => { noticeEl.style.display = "none"; }, 3000);
+      }).catch(err => {
+        alert("Failed to save username: " + err.message);
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+      });
+    }
+  }).catch(err => {
+    alert("Connection error: " + err.message + "\n\n(Ensure your new Firebase Rules are published!)");
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalText;
+  });
 }
 
 firebase.auth().onAuthStateChanged(u => {
   if (u) {
     document.getElementById('profile-email-text').textContent = u.email || "guest@unreserved.com";
-    if (!chatNickname) {
-      if (u.displayName) {
-        chatNickname = u.displayName;
-      } else if (u.email) {
-        chatNickname = u.email.split('@')[0];
-      } else {
-        chatNickname = "Guest-" + u.uid.substring(0, 4);
+    
+    db.ref(`/users/${u.uid}/profile`).once('value').then(snapshot => {
+      const profile = snapshot.val();
+      if (profile) {
+        if (profile.name) {
+          chatNickname = profile.name;
+          localStorage.setItem('unreserved_profile_name', chatNickname);
+        }
+        if (profile.photoURL) {
+          chatPhotoURL = profile.photoURL;
+          localStorage.setItem('unreserved_profile_pic', chatPhotoURL);
+        }
       }
-      localStorage.setItem('unreserved_profile_name', chatNickname);
-    }
-    document.getElementById('profile-name-input').value = chatNickname;
-    document.getElementById('profile-pic-img').src = chatPhotoURL;
+      
+      if (!chatNickname) {
+        if (u.displayName) {
+          chatNickname = u.displayName;
+        } else if (u.email) {
+          chatNickname = u.email.split('@')[0];
+        } else {
+          chatNickname = "Guest-" + u.uid.substring(0, 4);
+        }
+        localStorage.setItem('unreserved_profile_name', chatNickname);
+        
+        db.ref(`/users/${u.uid}/profile`).update({
+          name: chatNickname,
+          photoURL: chatPhotoURL
+        });
+      }
+      
+      document.getElementById('profile-name-input').value = chatNickname;
+      document.getElementById('profile-pic-img').src = chatPhotoURL;
+    });
   }
 });
 </script>
