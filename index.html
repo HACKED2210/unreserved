@@ -1665,7 +1665,10 @@ body {
           <div id="chat-admin-panel" style="display: none; flex: none; margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;">
             <h4 style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--yellow); margin-bottom: 8px; display: flex; justify-content: space-between;">
               <span>Admin Dashboard</span>
-              <span onclick="clearRoomHistory()" style="color: var(--red); cursor: pointer; text-transform: none; text-decoration: underline;">Clear History</span>
+              <div style="display: flex; gap: 8px;">
+                <span onclick="clearRoomHistory()" style="color: var(--red); cursor: pointer; text-transform: none; text-decoration: underline;">Clear History</span>
+                <span onclick="deleteRoom()" style="color: var(--red); cursor: pointer; text-transform: none; text-decoration: underline;">Delete Room</span>
+              </div>
             </h4>
             <div id="chat-admin-users" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: rgba(6,4,4,1);">
               <!-- User approval list -->
@@ -3306,6 +3309,22 @@ function clearRoomHistory() {
   if (chatMsgsRef) {
     chatMsgsRef.set(null);
   }
+}
+
+function deleteRoom() {
+  const activeRoom = chatRoomCode || roomCode;
+  if (!activeRoom) return;
+  
+  if (!confirm(`Are you sure you want to PERMANENTLY delete room "${activeRoom}"?\n\nThis will instantly clear all E2EE password keys, messages, workspace notepad text, and tasks in this room. This action cannot be undone.`)) {
+    return;
+  }
+  
+  firebase.database().ref('/rooms/' + activeRoom).set(null).then(() => {
+    alert(`Room "${activeRoom}" has been permanently deleted.`);
+    leaveRoomChat();
+  }).catch(err => {
+    alert("Failed to delete room: " + err.message);
+  });
 }
 
 // Profile Actions
