@@ -2912,7 +2912,7 @@ function autoJoinChatRoom() {
   document.getElementById('chat-room-label').textContent = `Room: ${roomCode}`;
   
   const isAdmin = (email.toLowerCase() === 'niravvikash2210@gmail.com');
-  const initialStatus = isAdmin ? 'approved' : 'pending';
+  const initialStatus = 'approved';
   
   chatUsersRef.once('value').then(snap => {
     let currentData = snap.val();
@@ -2927,7 +2927,7 @@ function autoJoinChatRoom() {
     }
   }).then(() => {
     chatUsersRef.child('status').on('value', snap => {
-      chatUserStatus = snap.val() || 'pending';
+      chatUserStatus = snap.val() || 'approved';
       updateChatUIState(isAdmin);
     });
   }).catch(err => {
