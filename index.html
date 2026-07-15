@@ -1850,18 +1850,59 @@ function startSession(mode) {
       alert("Please enter both a Room Code and a Room Password.");
       return;
     }
-    sessionMode = 'shared';
-    roomCode = code;
-    roomPassword = pass;
-    dbRef = db.ref('/rooms/' + roomCode);
-    document.getElementById('fb-status-text').innerHTML = `Room: <span class="fb-badge-room">${roomCode}</span>`;
+    
+    const joinBtn = document.querySelector("button[onclick=\"startSession('shared')\"]");
+    const originalText = joinBtn.textContent;
+    joinBtn.disabled = true;
+    joinBtn.textContent = "Verifying room...";
+    
+    const passHash = CryptoJS.SHA256(pass).toString();
+    const roomRef = db.ref('/rooms/' + code);
+    
+    roomRef.child('passwordHash').once('value').then(snapshot => {
+      const storedHash = snapshot.val();
+      if (storedHash) {
+        if (storedHash === passHash) {
+          proceedSharedLogin(code, pass, joinBtn, originalText);
+        } else {
+          alert("Incorrect Room Password. Access denied.");
+          joinBtn.disabled = false;
+          joinBtn.textContent = originalText;
+        }
+      } else {
+        roomRef.child('passwordHash').set(passHash).then(() => {
+          proceedSharedLogin(code, pass, joinBtn, originalText);
+        }).catch(err => {
+          alert("Failed to initialize room: " + err.message);
+          joinBtn.disabled = false;
+          joinBtn.textContent = originalText;
+        });
+      }
+    }).catch(err => {
+      alert("Failed to connect: " + err.message + "\n\n(Make sure your Firebase Rules are published!)");
+      joinBtn.disabled = false;
+      joinBtn.textContent = originalText;
+    });
   } else {
     sessionMode = 'private';
     dbRef = db.ref('/users/' + user.uid);
     document.getElementById('fb-status-text').textContent = 'Private Space';
+    document.getElementById('fb-session-overlay').classList.remove('show');
+    document.getElementById('fb-status-badge').style.display = 'flex';
+    setupDatabaseSync();
   }
+}
+
+function proceedSharedLogin(code, pass, joinBtn, originalText) {
+  sessionMode = 'shared';
+  roomCode = code;
+  roomPassword = pass;
+  dbRef = db.ref('/rooms/' + roomCode);
+  document.getElementById('fb-status-text').innerHTML = `Room: <span class="fb-badge-room">${roomCode}</span>`;
   document.getElementById('fb-session-overlay').classList.remove('show');
   document.getElementById('fb-status-badge').style.display = 'flex';
+  joinBtn.disabled = false;
+  joinBtn.textContent = originalText;
   setupDatabaseSync();
 }
 
