@@ -1205,6 +1205,111 @@ body {
   margin-top: 3px;
 }
 
+#bateman-card-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 320px;
+  height: 190px;
+  perspective: 1000px;
+  cursor: pointer;
+  z-index: 5;
+  display: block;
+  pointer-events: all;
+}
+#bateman-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+#bateman-card-container:hover #bateman-card-inner {
+  transform: translateY(-8px);
+}
+#bateman-card-container.flipped #bateman-card-inner {
+  transform: rotateY(180deg);
+}
+.bateman-card-side {
+  position: absolute;
+  inset: 0;
+  background: rgba(232,221,208,0.03);
+  border: 1.2px solid rgba(232,221,208,0.9);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  box-sizing: border-box;
+  backface-visibility: hidden;
+  backdrop-filter: blur(10px);
+  color: #e8ddd0;
+  font-family: Cormorant Garamond, serif;
+  box-shadow: 0 4px 24px rgba(140,26,26,0.25);
+}
+.bateman-card-front {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.bateman-card-back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background: rgba(14,6,6,0.96);
+  border-color: var(--accent);
+}
+.bateman-card-border-line {
+  position: absolute;
+  inset: 6px;
+  border: 0.4px solid rgba(232,221,208,0.3);
+  pointer-events: none;
+}
+.bateman-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+.bateman-card-title {
+  font-size: 9px;
+  color: rgba(232,221,208,0.60);
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+.bateman-card-company {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  margin-bottom: 2px;
+}
+.bateman-card-dept {
+  font-size: 8px;
+  color: rgba(232,221,208,0.45);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.bateman-card-address, .bateman-card-contact {
+  font-size: 7.5px;
+  color: rgba(232,221,208,0.45);
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+}
+.bateman-card-quote {
+  margin-top: auto;
+  font-size: 6px;
+  color: rgba(140,26,26,0.65);
+  letter-spacing: 0.8px;
+  font-style: italic;
+}
+.bateman-insult-box {
+  font-size: 9px;
+  line-height: 1.4;
+  color: var(--text-dim);
+  border-top: 1px dashed rgba(140,26,26,0.25);
+  padding-top: 8px;
+  margin-top: auto;
+  font-style: italic;
+}
 
 /* MOBILE SMARTPHONE RESPONSIVE STYLING */
 @media (max-width: 768px) {
@@ -1347,6 +1452,9 @@ body {
   #clock-date {
     font-size: 8px !important;
   }
+  #bateman-card-container {
+    display: none !important;
+  }
 }
 </style>
 <!-- Firebase v8 Compatibility Scripts -->
@@ -1438,21 +1546,30 @@ body {
 <!-- VECTOR OVERLAYS -->
 <div id="ap-overlays">
   <!-- Business Card -->
-  <svg class="ap-card" viewBox="0 0 340 200" xmlns="http://www.w3.org/2000/svg" fill="none">
-    <rect x="1" y="1" width="338" height="198" rx="4" fill="rgba(232,221,208,0.03)" stroke="rgba(232,221,208,0.9)" stroke-width="1.2"/>
-    <rect x="7" y="7" width="326" height="186" rx="2" fill="none" stroke="rgba(232,221,208,0.35)" stroke-width="0.4"/>
-    <line x1="7" y1="62" x2="333" y2="62" stroke="rgba(232,221,208,0.25)" stroke-width="0.4"/>
-    <line x1="22" y1="138" x2="210" y2="138" stroke="rgba(140,26,26,0.7)" stroke-width="0.6"/>
-    <circle cx="308" cy="155" r="26" fill="none" stroke="rgba(232,221,208,0.07)" stroke-width="10"/>
-    <circle cx="308" cy="155" r="14" fill="none" stroke="rgba(232,221,208,0.06)" stroke-width="5"/>
-    <text x="22" y="43" font-family="Cormorant Garamond, serif" font-size="16" font-weight="600" fill="rgba(232,221,208,0.95)" letter-spacing="5">PATRICK BATEMAN</text>
-    <text x="22" y="85" font-family="Cormorant Garamond, serif" font-size="10" fill="rgba(232,221,208,0.65)" letter-spacing="2">Vice President</text>
-    <text x="22" y="104" font-family="Cormorant Garamond, serif" font-size="14" font-weight="500" fill="rgba(232,221,208,0.88)" letter-spacing="4">PIERCE &amp; PIERCE</text>
-    <text x="22" y="120" font-family="Cormorant Garamond, serif" font-size="8.5" fill="rgba(232,221,208,0.45)" letter-spacing="1.5">Mergers and Acquisitions</text>
-    <text x="22" y="154" font-family="Cormorant Garamond, serif" font-size="8" fill="rgba(232,221,208,0.45)" letter-spacing="0.3">358 Exchange Place, New York, N.Y. 10099</text>
-    <text x="22" y="170" font-family="Cormorant Garamond, serif" font-size="8" fill="rgba(232,221,208,0.4)" letter-spacing="0.3">Tel: (212) 555-6661   Fax: (212) 555-6342</text>
-    <text x="22" y="188" font-family="Cormorant Garamond, serif" font-size="6.5" fill="rgba(140,26,26,0.5)" letter-spacing="1">"Do you have a reservation at Dorsia?"</text>
-  </svg>
+  <!-- Interactive Business Card -->
+  <div id="bateman-card-container" onclick="this.classList.toggle('flipped')">
+    <div id="bateman-card-inner">
+      <!-- FRONT SIDE -->
+      <div class="bateman-card-side bateman-card-front">
+        <div class="bateman-card-border-line"></div>
+        <div class="bateman-card-name" id="bateman-card-username">PATRICK BATEMAN</div>
+        <div class="bateman-card-title">Vice President</div>
+        <div class="bateman-card-company">PIERCE &amp; PIERCE</div>
+        <div class="bateman-card-dept">Mergers and Acquisitions</div>
+        <div class="bateman-card-address">358 Exchange Place, New York, N.Y. 10099</div>
+        <div class="bateman-card-contact">Tel: (212) 555-6661   Fax: (212) 555-6342</div>
+        <div class="bateman-card-quote">"Do you have a reservation at Dorsia?"</div>
+      </div>
+      <!-- BACK SIDE -->
+      <div class="bateman-card-side bateman-card-back">
+        <div class="bateman-card-border-line"></div>
+        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; letter-spacing: 1px;">Study Performance</div>
+        <div style="font-size: 10px; margin-bottom: 4px;">7-Day Average: <span id="bateman-study-avg" style="font-weight: 600; color: var(--text);">0.0 hrs/day</span></div>
+        <div style="font-size: 9px; color: var(--text-dim); margin-bottom: 8px;" id="bateman-study-status">Requirement: 6.0 hrs/day</div>
+        <div class="bateman-insult-box" id="bateman-insult-text">"You call that studying? I've seen more dedication from a junior analyst at Pierce &amp; Pierce before they got fired."</div>
+      </div>
+    </div>
+  </div>
 
   <!-- Book Cover Portrait — Red Mask Face -->
   <svg class="ap-face" viewBox="0 0 240 340" xmlns="http://www.w3.org/2000/svg">
@@ -2430,11 +2547,22 @@ function pauseTimer() {
   timerRunning = false; clearInterval(timerInterval);
   svgEl.classList.remove('running'); ringEl.classList.add('paused');
   statusEl.textContent = 'PAUSED'; mainBtn.textContent = '▶ Resume';
+  if (timerMode === 'stopwatch' && elapsed > 0) {
+    logStudyTime(elapsed);
+    elapsed = 0;
+  }
 }
 function stopTimer() {
   timerRunning = false; clearInterval(timerInterval); svgEl.classList.remove('running');
+  if (timerMode === 'stopwatch' && elapsed > 0) {
+    logStudyTime(elapsed);
+    elapsed = 0;
+  }
 }
 function resetTimer() {
+  if (timerMode === 'stopwatch' && elapsed > 0) {
+    logStudyTime(elapsed);
+  }
   stopTimer();
   timeLeft = totalSeconds; elapsed = 0;
   ringEl.classList.remove('paused','alarm'); displayEl.classList.remove('alarm');
@@ -2455,6 +2583,9 @@ function onTimerEnd() {
   document.getElementById('sessions-label').textContent = `${sessions} session${sessions!==1?'s':''}`;
   ringEl.classList.add('alarm'); displayEl.classList.add('alarm');
   statusEl.textContent = 'DONE!'; mainBtn.textContent = '▶ Start';
+  
+  logStudyTime(totalSeconds);
+  
   if (queue.length && !isPlaying) { playTrack(currentTrackIdx>=0?currentTrackIdx:0); }
   let p=0; const iv = setInterval(()=>{
     document.getElementById('timer-card').style.transform = p%2===0?'scale(1.012)':'scale(1)';
@@ -3633,6 +3764,8 @@ function saveProfileName() {
         saveBtn.disabled = false;
         saveBtn.textContent = originalText;
         
+        updateBatemanCardData();
+        
         noticeEl.style.color = "var(--green)";
         noticeEl.textContent = "Username saved successfully!";
         noticeEl.style.display = "block";
@@ -3685,6 +3818,7 @@ firebase.auth().onAuthStateChanged(u => {
       
       document.getElementById('profile-name-input').value = chatNickname;
       document.getElementById('profile-pic-img').src = chatPhotoURL;
+      updateBatemanCardData();
     });
   }
 });
@@ -3704,6 +3838,118 @@ function startClock() {
   setInterval(update, 1000);
 }
 startClock();
+
+let studyHistory = {};
+
+function logStudyTime(seconds) {
+  const user = firebase.auth().currentUser;
+  if (!user || seconds <= 0) return;
+  
+  const minutes = seconds / 60;
+  const today = new Date().toISOString().split('T')[0];
+  const userHistoryRef = db.ref(`/users/${user.uid}/studyHistory/${today}`);
+  
+  userHistoryRef.transaction(currentVal => {
+    return (currentVal || 0) + minutes;
+  }).then(() => {
+    updateBatemanCardData();
+  });
+}
+
+function updateBatemanCardData() {
+  const user = firebase.auth().currentUser;
+  if (!user) return;
+  
+  const cardNameEl = document.getElementById('bateman-card-username');
+  if (cardNameEl) {
+    cardNameEl.textContent = chatNickname || "PATRICK BATEMAN";
+  }
+  
+  const userHistoryRef = db.ref(`/users/${user.uid}/studyHistory`);
+  userHistoryRef.once('value').then(snapshot => {
+    studyHistory = snapshot.val() || {};
+    calculateStudyAverage();
+  });
+}
+
+function calculateStudyAverage() {
+  const avgEl = document.getElementById('bateman-study-avg');
+  const statusEl = document.getElementById('bateman-study-status');
+  if (!avgEl || !statusEl) return;
+  
+  const now = new Date();
+  let totalMinutes = 0;
+  
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(now.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const mins = studyHistory[dateStr] || 0;
+    totalMinutes += mins;
+  }
+  
+  const averageHours = (totalMinutes / 60) / 7;
+  avgEl.textContent = `${averageHours.toFixed(1)} hrs/day`;
+  
+  if (averageHours >= 6.0) {
+    statusEl.textContent = "Requirement Met (6.0 hrs/day)";
+    statusEl.style.color = "var(--green)";
+    document.getElementById('bateman-insult-text').textContent = `"Impressive. Very nice. Let's see Paul Allen's study habits."`;
+  } else {
+    statusEl.textContent = "Requirement: 6.0 hrs/day (Not Met)";
+    statusEl.style.color = "var(--red)";
+    generateBatemanInsult(averageHours);
+  }
+}
+
+const BATEMAN_INSULTS = [
+  "You call that studying? I've seen more dedication from a junior analyst at Pierce & Pierce before they got fired.",
+  "I have to return some videotapes. And you, clearly, have to return to your books. This is embarrassing.",
+  "Your study average is practically non-existent. You wouldn't even get a reservation at Dorsia with those numbers.",
+  "Very nice. Let's see Paul Allen's study hours. Oh wait, they're probably higher than your pathetic average.",
+  "You're not even trying, are you? I'm thinking of cleaning my raincoat, and you should think about cleaning up your habits."
+];
+
+async function generateBatemanInsult(avgHours) {
+  const insultEl = document.getElementById('bateman-insult-text');
+  if (!insultEl) return;
+  
+  const geminiKey = getGeminiKey();
+  if (!geminiKey) {
+    const idx = Math.floor(Math.random() * BATEMAN_INSULTS.length);
+    insultEl.textContent = `"${BATEMAN_INSULTS[idx]}"`;
+    return;
+  }
+  
+  const promptText = `Write a single short, witty, stingy, sarcastic insult in the style of Patrick Bateman from American Psycho targeting a student who only studied ${avgHours.toFixed(1)} hours per day on average, when the goal is 6 hours. Keep it under 2 sentences, sophisticated, dark, and reference Pierce & Pierce, Dorsia, or return some videotapes. Output ONLY the quote, inside quotation marks.`;
+  
+  const payload = {
+    contents: [{
+      role: 'user',
+      parts: [{text: promptText}]
+    }],
+    systemInstruction: {
+      parts: [{text: "You are Patrick Bateman from American Psycho. Speak in his precise, narcissistic, chilling tone."}]
+    }
+  };
+  
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${geminiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
+      insultEl.textContent = data.candidates[0].content.parts[0].text.trim();
+    } else {
+      throw new Error("Invalid response");
+    }
+  } catch (e) {
+    const idx = Math.floor(Math.random() * BATEMAN_INSULTS.length);
+    insultEl.textContent = `"${BATEMAN_INSULTS[idx]}"`;
+  }
+}
 </script>
 </body>
 </html>
