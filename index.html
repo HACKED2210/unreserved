@@ -1239,7 +1239,10 @@ body {
       <label>Enter Room Password</label>
       <input type="password" id="session-room-password" class="fb-input" placeholder="••••••••" style="text-align:center;">
     </div>
-    <button class="fb-btn secondary" onclick="startSession('shared')" style="margin-top: 10px;">Join / Create Room</button>
+    <div style="display: flex; gap: 10px; margin-top: 12px;">
+      <button class="fb-btn secondary" onclick="startSession('join')" style="flex: 1; padding: 10px; font-size: 12px; margin-top: 0;">Join Room</button>
+      <button class="fb-btn" onclick="startSession('create')" style="flex: 1; padding: 10px; font-size: 12px; margin-top: 0; background: var(--accent); border-color: var(--accent);">Create Room</button>
+    </div>
   </div>
 </div>
 
@@ -1889,7 +1892,7 @@ function handleForgotPassword() {
 }
 
 function startSession(mode) {
-  if (mode === 'shared') {
+  if (mode === 'join' || mode === 'create') {
     const code = document.getElementById('session-room-code').value.trim().toUpperCase();
     const pass = document.getElementById('session-room-password').value.trim();
     if (!code || !pass) {
@@ -1897,10 +1900,10 @@ function startSession(mode) {
       return;
     }
     
-    const joinBtn = document.querySelector("button[onclick=\"startSession('shared')\"]");
+    const joinBtn = document.querySelector(`button[onclick="startSession('${mode}')"]`);
     const originalText = joinBtn.textContent;
     joinBtn.disabled = true;
-    joinBtn.textContent = "Verifying room...";
+    joinBtn.textContent = mode === 'join' ? "Joining..." : "Creating...";
     
     const passHash = CryptoJS.SHA256(pass).toString();
     const roomRef = db.ref('/rooms/' + code);
@@ -1908,21 +1911,33 @@ function startSession(mode) {
     roomRef.child('passwordHash').once('value').then(snapshot => {
       const storedHash = snapshot.val();
       if (storedHash) {
-        if (storedHash === passHash) {
-          proceedSharedLogin(code, pass, joinBtn, originalText);
-        } else {
-          alert("Incorrect Room Password. Access denied.");
+        if (mode === 'create') {
+          alert(`Room Code "${code}" is already taken. Please choose a unique Room Code.`);
           joinBtn.disabled = false;
           joinBtn.textContent = originalText;
+        } else {
+          if (storedHash === passHash) {
+            proceedSharedLogin(code, pass, joinBtn, originalText);
+          } else {
+            alert("Incorrect Room Password. Access denied.");
+            joinBtn.disabled = false;
+            joinBtn.textContent = originalText;
+          }
         }
       } else {
-        roomRef.child('passwordHash').set(passHash).then(() => {
-          proceedSharedLogin(code, pass, joinBtn, originalText);
-        }).catch(err => {
-          alert("Failed to initialize room: " + err.message);
+        if (mode === 'join') {
+          alert(`Room "${code}" does not exist. If you want to create a new room, click "Create Room" instead.`);
           joinBtn.disabled = false;
           joinBtn.textContent = originalText;
-        });
+        } else {
+          roomRef.child('passwordHash').set(passHash).then(() => {
+            proceedSharedLogin(code, pass, joinBtn, originalText);
+          }).catch(err => {
+            alert("Failed to initialize room: " + err.message);
+            joinBtn.disabled = false;
+            joinBtn.textContent = originalText;
+          });
+        }
       }
     }).catch(err => {
       alert("Failed to connect: " + err.message + "\n\n(Make sure your Firebase Rules are published!)");
