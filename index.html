@@ -1247,7 +1247,7 @@ body {
 <div id="fb-status-badge" class="fb-badge" style="display:none;">
   <span id="fb-status-dot"></span>
   <span id="fb-status-text">Private Space</span>
-  <button onclick="logOutSession()" style="background:none; border:none; color:var(--text-dim); cursor:pointer; margin-left:6px; font-size:11px; text-decoration:underline;">Log Out</button>
+  <button onclick="changeWorkspace()" style="background:none; border:none; color:var(--text-dim); cursor:pointer; margin-left:6px; font-size:11px; text-decoration:underline;">Change Space</button>
 </div>
 
 <!-- BACKGROUND -->
@@ -1605,10 +1605,19 @@ body {
           <!-- ROOM PRIVATE SPACE NOTICE -->
           <div id="chat-private-box" style="display: none; text-align: center; padding: 24px 12px; border: 1px dashed var(--border); border-radius: var(--radius-sm); background: rgba(140,26,26,0.02);">
             <div style="font-size: 24px; margin-bottom: 12px;">💬</div>
-            <h4 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Collaborative Chat</h4>
-            <p style="font-size: 11px; color: var(--text-dim); line-height: 1.5;">
-              Chat is disabled in Private Space. To chat and collaborate with friends in real-time, please click 'Change Room' at the top-right and join a Shared Room with a Password.
+            <h4 style="font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Private Space Chat</h4>
+            <p style="font-size: 11px; color: var(--text-dim); line-height: 1.5; margin-bottom: 15px;">
+              Connect to a collaborative chat room while keeping your notepad, tasks, and study timer private.
             </p>
+            <div class="fb-input-group" style="margin-bottom: 8px;">
+              <input type="text" class="nano-input" id="chat-manual-room-id" placeholder="Room ID (e.g. BATEMAN)" style="text-transform: uppercase; width: 100%;">
+            </div>
+            <div class="fb-input-group" style="margin-bottom: 12px;">
+              <input type="password" class="nano-input" id="chat-manual-room-pass" placeholder="Room Password" style="width: 100%;">
+            </div>
+            <button class="fb-btn" onclick="joinManualChatRoom()" style="padding: 10px; font-size: 12px; font-weight: 600; width: 100%;">
+              Connect Chat
+            </button>
           </div>
           
           <!-- ROOM JOINING / LOADING -->
@@ -1648,7 +1657,7 @@ body {
             
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 10px; color: var(--text-dim); flex: none;">
               <span id="chat-room-label">Room: None</span>
-              <span onclick="logOutSession()" style="cursor: pointer; text-decoration: underline;">Change Room</span>
+              <span onclick="leaveRoomChat()" style="cursor: pointer; text-decoration: underline;">Change Room</span>
             </div>
           </div>
           
@@ -1948,6 +1957,51 @@ function logOutSession() {
     document.getElementById('fb-status-badge').style.display = 'none';
     location.reload();
   });
+}
+
+function changeWorkspace() {
+  if (dbRef) {
+    dbRef.off();
+  }
+  
+  if (chatRoomRef) chatRoomRef.child('users').off();
+  if (chatMsgsRef) chatMsgsRef.off();
+  if (chatUsersRef) chatUsersRef.child('status').off();
+  
+  chatRoomRef = null;
+  chatUsersRef = null;
+  chatMsgsRef = null;
+  chatRoomCode = "";
+  chatRoomPassword = "";
+  chatUserStatus = "";
+  
+  document.getElementById('chat-room-label').textContent = "Room: None";
+  document.getElementById('chat-messages').innerHTML = '';
+  
+  document.getElementById('fb-status-badge').style.display = 'none';
+  document.getElementById('fb-session-overlay').classList.add('show');
+}
+
+function leaveRoomChat() {
+  if (chatRoomRef) chatRoomRef.child('users').off();
+  if (chatMsgsRef) chatMsgsRef.off();
+  if (chatUsersRef) chatUsersRef.child('status').off();
+  
+  chatRoomRef = null;
+  chatUsersRef = null;
+  chatMsgsRef = null;
+  chatUserStatus = "";
+  
+  document.getElementById('chat-room-label').textContent = "Room: None";
+  document.getElementById('chat-messages').innerHTML = '';
+  
+  if (sessionMode === 'private') {
+    chatRoomCode = "";
+    chatRoomPassword = "";
+    initChatDrawerForSession();
+  } else {
+    changeWorkspace();
+  }
 }
 
 function setupDatabaseSync() {
@@ -2938,6 +2992,8 @@ let chatMsgsRef = null;
 let chatNickname = localStorage.getItem('unreserved_profile_name') || "";
 let chatPhotoURL = localStorage.getItem('unreserved_profile_pic') || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 let chatUserStatus = "";
+let chatRoomCode = "";
+let chatRoomPassword = "";
 
 function initChatDrawerForSession() {
   document.getElementById('chat-private-box').style.display = 'none';
@@ -2954,7 +3010,13 @@ function initChatDrawerForSession() {
   }
   
   if (sessionMode === 'private') {
-    document.getElementById('chat-private-box').style.display = 'block';
+    if (chatRoomCode) {
+      document.getElementById('chat-loading-box').style.display = 'block';
+      document.getElementById('chat-loading-box').querySelector('p').textContent = `Connecting to Room ${chatRoomCode}...`;
+      autoJoinChatRoom();
+    } else {
+      document.getElementById('chat-private-box').style.display = 'block';
+    }
     return;
   }
   
@@ -2964,8 +3026,60 @@ function initChatDrawerForSession() {
   autoJoinChatRoom();
 }
 
+function joinManualChatRoom() {
+  const code = document.getElementById('chat-manual-room-id').value.trim().toUpperCase();
+  const pass = document.getElementById('chat-manual-room-pass').value.trim();
+  
+  if (!code || !pass) {
+    alert("Please enter both a Room Code and a Room Password.");
+    return;
+  }
+  
+  const joinBtn = document.querySelector('button[onclick="joinManualChatRoom()"]');
+  const originalText = joinBtn.textContent;
+  joinBtn.disabled = true;
+  joinBtn.textContent = "Connecting...";
+  
+  const passHash = CryptoJS.SHA256(pass).toString();
+  const roomRef = db.ref('/rooms/' + code);
+  
+  roomRef.child('passwordHash').once('value').then(snapshot => {
+    const storedHash = snapshot.val();
+    if (storedHash) {
+      if (storedHash === passHash) {
+        chatRoomCode = code;
+        chatRoomPassword = pass;
+        joinBtn.disabled = false;
+        joinBtn.textContent = originalText;
+        initChatDrawerForSession();
+      } else {
+        alert("Incorrect Room Password. Access denied.");
+        joinBtn.disabled = false;
+        joinBtn.textContent = originalText;
+      }
+    } else {
+      roomRef.child('passwordHash').set(passHash).then(() => {
+        chatRoomCode = code;
+        chatRoomPassword = pass;
+        joinBtn.disabled = false;
+        joinBtn.textContent = originalText;
+        initChatDrawerForSession();
+      }).catch(err => {
+        alert("Failed to initialize room: " + err.message);
+        joinBtn.disabled = false;
+        joinBtn.textContent = originalText;
+      });
+    }
+  }).catch(err => {
+    alert("Connection failed: " + err.message + "\n\n(Make sure your Firebase Rules are published!)");
+    joinBtn.disabled = false;
+    joinBtn.textContent = originalText;
+  });
+}
+
 function autoJoinChatRoom() {
-  if (!roomCode) return;
+  const activeRoom = chatRoomCode || roomCode;
+  if (!activeRoom) return;
   
   const currentUser = firebase.auth().currentUser;
   const uid = currentUser.uid;
@@ -2981,11 +3095,11 @@ function autoJoinChatRoom() {
     }
   }
   
-  chatRoomRef = firebase.database().ref(`rooms/${roomCode}`);
+  chatRoomRef = firebase.database().ref(`rooms/${activeRoom}`);
   chatUsersRef = chatRoomRef.child(`users/${uid}`);
   chatMsgsRef = chatRoomRef.child('messages');
   
-  document.getElementById('chat-room-label').textContent = `Room: ${roomCode}`;
+  document.getElementById('chat-room-label').textContent = `Room: ${activeRoom}`;
   
   const isAdmin = (email.toLowerCase() === 'niravvikash2210@gmail.com');
   const initialStatus = 'approved';
@@ -3061,7 +3175,7 @@ function listenToRoomMessages() {
       
       let decryptedText = "";
       try {
-        const bytes = CryptoJS.AES.decrypt(ciphertext, roomPassword);
+        const bytes = CryptoJS.AES.decrypt(ciphertext, chatRoomPassword || roomPassword);
         decryptedText = bytes.toString(CryptoJS.enc.Utf8);
         if (!decryptedText) {
           decryptedText = "🔒 [Incorrect Password / Decryption Failed]";
@@ -3114,7 +3228,7 @@ function sendChatMessage() {
   
   let ciphertext = "";
   try {
-    ciphertext = CryptoJS.AES.encrypt(text, roomPassword).toString();
+    ciphertext = CryptoJS.AES.encrypt(text, chatRoomPassword || roomPassword).toString();
   } catch (e) {
     alert("Encryption failed: " + e.message);
     return;
