@@ -1527,18 +1527,34 @@ body {
             Enter any mathematical function to calculate its indefinite or definite integral step-by-step.
           </p>
           
-          <div class="math-input-row" style="margin-bottom: 8px;">
-            <input type="text" class="nano-input" id="integral-input" placeholder="e.g. x^2 * sin(x) or 3*x^2 + 5" oninput="previewIntegral()" onkeydown="if(event.key==='Enter'){solveIntegral()}">
+          <!-- Gemini Key Input (if not set) -->
+          <div id="integral-key-setup" class="math-key-box" style="display:none; padding:12px; border:1px dashed var(--border); border-radius:var(--radius-sm); background:rgba(140,26,26,0.02); margin-bottom:10px;">
+            <p style="font-size:12px; color:var(--text-dim); margin-bottom:10px; line-height:1.4;">Paste your free Gemini API Key from <a href="https://aistudio.google.com" target="_blank" style="color:var(--yellow); text-decoration:underline;">aistudio.google.com</a> to enable the calculus solver.</p>
+            <div class="math-input-row">
+              <input type="password" class="nano-input" id="integral-key-input" placeholder="AIzaSy..." style="flex:1;">
+              <button class="nano-btn" onclick="saveIntegralKey()">Save</button>
+            </div>
           </div>
           
-          <!-- Live Preview -->
-          <div id="integral-preview" style="font-size: 13px; color: var(--yellow); min-height: 24px; padding: 4px; text-align: center; margin-bottom: 12px;">
-            $$\int ( \dots ) \, dx$$
+          <!-- Calculator UI (shown if key set) -->
+          <div id="integral-calc-box" style="display:none;">
+            <div class="math-input-row" style="margin-bottom: 8px;">
+              <input type="text" class="nano-input" id="integral-input" placeholder="e.g. x^2 * sin(x) or 3*x^2 + 5" oninput="previewIntegral()" onkeydown="if(event.key==='Enter'){solveIntegral()}">
+            </div>
+            
+            <!-- Live Preview -->
+            <div id="integral-preview" style="font-size: 13px; color: var(--yellow); min-height: 24px; padding: 4px; text-align: center; margin-bottom: 12px;">
+              $$\int ( \dots ) \, dx$$
+            </div>
+            
+            <button class="fb-btn" id="integral-solve-btn" onclick="solveIntegral()" style="padding: 10px; font-size: 12px; font-weight: 600; margin-bottom: 16px; width: 100%; flex: none;">
+              Calculate Integral
+            </button>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0px; margin-bottom:16px; padding:0 2px;">
+              <span onclick="resetIntegralKey()" style="color:var(--text-dim); font-size:10px; cursor:pointer; text-decoration:underline;">Reset API Key</span>
+            </div>
           </div>
-          
-          <button class="fb-btn" id="integral-solve-btn" onclick="solveIntegral()" style="padding: 10px; font-size: 12px; font-weight: 600; margin-bottom: 16px; width: 100%; flex: none;">
-            Calculate Integral
-          </button>
           
           <!-- Results Container -->
           <div id="integral-result-box" style="flex: 1; overflow-y: auto; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: rgba(140,26,26,0.01); display: none;">
@@ -1876,7 +1892,7 @@ function setupDatabaseSync() {
 
 window.addEventListener('DOMContentLoaded', () => {
   initFirebase();
-  showMathChat();
+  updateGeminiKeyUIs();
 });
 
 /* Particles */
@@ -2345,22 +2361,41 @@ function saveGeminiKey() {
   const key = document.getElementById('math-key-input').value.trim();
   if (key) {
     localStorage.setItem('unreserved_gemini_key', key);
-    showMathChat();
+    updateGeminiKeyUIs();
+  }
+}
+function saveIntegralKey() {
+  const key = document.getElementById('integral-key-input').value.trim();
+  if (key) {
+    localStorage.setItem('unreserved_gemini_key', key);
+    updateGeminiKeyUIs();
   }
 }
 function resetGeminiKey() {
   localStorage.removeItem('unreserved_gemini_key');
-  document.getElementById('math-key-setup').style.display = 'block';
-  document.getElementById('math-chat-box').style.display = 'none';
+  updateGeminiKeyUIs();
 }
-function showMathChat() {
+function resetIntegralKey() {
+  localStorage.removeItem('unreserved_gemini_key');
+  updateGeminiKeyUIs();
+}
+function updateGeminiKeyUIs() {
   const key = getGeminiKey();
+  
   if (key) {
     document.getElementById('math-key-setup').style.display = 'none';
     document.getElementById('math-chat-box').style.display = 'block';
   } else {
     document.getElementById('math-key-setup').style.display = 'block';
     document.getElementById('math-chat-box').style.display = 'none';
+  }
+  
+  if (key) {
+    document.getElementById('integral-key-setup').style.display = 'none';
+    document.getElementById('integral-calc-box').style.display = 'block';
+  } else {
+    document.getElementById('integral-key-setup').style.display = 'block';
+    document.getElementById('integral-calc-box').style.display = 'none';
   }
 }
 
