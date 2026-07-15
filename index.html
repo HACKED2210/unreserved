@@ -1234,16 +1234,16 @@ body {
 .bateman-card-side {
   position: absolute;
   inset: 0;
-  background: rgba(232,221,208,0.03);
-  border: 1.2px solid rgba(232,221,208,0.9);
+  background: #f8f6f0; /* Bone paper color */
+  border: 1.2px solid #d4cebc;
   border-radius: var(--radius-sm);
   padding: 16px 20px;
   box-sizing: border-box;
   backface-visibility: hidden;
-  backdrop-filter: blur(10px);
-  color: #e8ddd0;
+  color: #1b1918;
   font-family: Cormorant Garamond, serif;
-  box-shadow: 0 4px 24px rgba(140,26,26,0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  text-shadow: 0.3px 0.3px 0.5px rgba(0,0,0,0.12);
 }
 .bateman-card-front {
   display: flex;
@@ -1255,61 +1255,24 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  background: rgba(14,6,6,0.96);
-  border-color: var(--accent);
+  background: #f8f6f0;
+  border-color: #d4cebc;
 }
 .bateman-card-border-line {
   position: absolute;
   inset: 6px;
-  border: 0.4px solid rgba(232,221,208,0.3);
+  border: 0.4px solid rgba(140,26,26,0.08);
   pointer-events: none;
 }
-.bateman-card-name {
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 3px;
-  margin-bottom: 2px;
-  text-transform: uppercase;
-}
-.bateman-card-title {
-  font-size: 9px;
-  color: rgba(232,221,208,0.60);
-  letter-spacing: 1.5px;
-  margin-bottom: 12px;
-}
-.bateman-card-company {
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 2px;
-  margin-bottom: 2px;
-}
-.bateman-card-dept {
-  font-size: 8px;
-  color: rgba(232,221,208,0.45);
-  letter-spacing: 1px;
-  margin-bottom: 12px;
-}
-.bateman-card-address, .bateman-card-contact {
-  font-size: 7.5px;
-  color: rgba(232,221,208,0.45);
-  letter-spacing: 0.3px;
-  line-height: 1.3;
-}
-.bateman-card-quote {
-  margin-top: auto;
-  font-size: 6px;
-  color: rgba(140,26,26,0.65);
-  letter-spacing: 0.8px;
-  font-style: italic;
-}
 .bateman-insult-box {
-  font-size: 9px;
-  line-height: 1.4;
-  color: var(--text-dim);
-  border-top: 1px dashed rgba(140,26,26,0.25);
+  font-size: 9.5px;
+  line-height: 1.45;
+  color: #8c1a1a;
+  border-top: 1px dashed rgba(140,26,26,0.20);
   padding-top: 8px;
   margin-top: auto;
   font-style: italic;
+  font-family: 'Courier New', monospace;
 }
 
 /* MOBILE SMARTPHONE RESPONSIVE STYLING */
@@ -1548,26 +1511,34 @@ body {
 <div id="ap-overlays">
   <!-- Business Card -->
   <!-- Interactive Business Card -->
-  <div id="bateman-card-container" onclick="this.classList.toggle('flipped')">
+  <!-- Interactive Business Card -->
+  <div id="bateman-card-container">
     <div id="bateman-card-inner">
-      <!-- FRONT SIDE -->
-      <div class="bateman-card-side bateman-card-front">
+      <!-- FRONT SIDE (Exact replica of movie prop) -->
+      <div class="bateman-card-side bateman-card-front" style="position: relative;">
         <div class="bateman-card-border-line"></div>
-        <div class="bateman-card-name" id="bateman-card-username">PATRICK BATEMAN</div>
-        <div class="bateman-card-title">Vice President</div>
-        <div class="bateman-card-company">PIERCE &amp; PIERCE</div>
-        <div class="bateman-card-dept">Mergers and Acquisitions</div>
-        <div class="bateman-card-address">358 Exchange Place, New York, N.Y. 10099</div>
-        <div class="bateman-card-contact">Tel: (212) 555-6661   Fax: (212) 555-6342</div>
-        <div class="bateman-card-quote">"Do you have a reservation at Dorsia?"</div>
+        <div style="position: absolute; top: 18px; left: 22px; font-size: 11.5px; font-weight: 500; letter-spacing: 0.5px; color: #1b1918;">212 555 6342</div>
+        <div style="position: absolute; top: 16px; right: 22px; text-align: right; line-height: 1.15;">
+          <div style="font-size: 11.5px; font-weight: 700; letter-spacing: 1px; color: #1b1918;">PIERCE &amp; PIERCE</div>
+          <div style="font-size: 6.5px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: #666;">Mergers and Acquisitions</div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; margin-top: -12px;">
+          <div class="bateman-card-name" id="bateman-card-username" style="font-size: 15px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #1b1918;">PATRICK BATEMAN</div>
+          <div style="font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 5px; color: #555; font-weight: 500;">Vice President</div>
+        </div>
+        <div style="position: absolute; bottom: 16px; left: 20px; right: 20px; text-align: center; font-size: 7.2px; letter-spacing: 0.6px; text-transform: uppercase; color: #555; font-weight: 500;">
+          358 Exchange Place, New York, N.Y. 10099 fax 212 555 6390 telex 10 4534
+        </div>
       </div>
-      <!-- BACK SIDE -->
-      <div class="bateman-card-side bateman-card-back">
-        <div class="bateman-card-border-line"></div>
-        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; letter-spacing: 1px;">Study Performance</div>
-        <div style="font-size: 10px; margin-bottom: 4px;">7-Day Average: <span id="bateman-study-avg" style="font-weight: 600; color: var(--text);">0.0 hrs/day</span></div>
-        <div style="font-size: 9px; color: var(--text-dim); margin-bottom: 8px;" id="bateman-study-status">Requirement: 6.0 hrs/day</div>
-        <div class="bateman-insult-box" id="bateman-insult-text">"You call that studying? I've seen more dedication from a junior analyst at Pierce &amp; Pierce before they got fired."</div>
+      <!-- BACK SIDE (Stats & Stamped Review) -->
+      <div class="bateman-card-side bateman-card-back" style="position: relative; justify-content: center; align-items: center; text-align: center;">
+        <div class="bateman-card-border-line" style="border-color: rgba(140,26,26,0.14);"></div>
+        <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #8c1a1a; margin-bottom: 8px; letter-spacing: 1px;">Study Performance</div>
+        <div style="font-size: 10.5px; margin-bottom: 5px; color: #1b1918;">7-Day Average: <span id="bateman-study-avg" style="font-weight: 700; color: #8c1a1a;">0.0 hrs/day</span></div>
+        <div style="font-size: 9px; color: #666; margin-bottom: 12px;" id="bateman-study-status">Requirement: 6.0 hrs/day</div>
+        <div class="bateman-insult-box" id="bateman-insult-text">
+          "You call that studying? I've seen more dedication from a junior analyst at Pierce &amp; Pierce before they got fired."
+        </div>
       </div>
     </div>
   </div>
@@ -3951,6 +3922,28 @@ async function generateBatemanInsult(avgHours) {
     insultEl.textContent = `"${BATEMAN_INSULTS[idx]}"`;
   }
 }
+
+// Bateman Card Interactive Mouse Hover/Flip Mechanics
+(function() {
+  const cardContainer = document.getElementById('bateman-card-container');
+  if (!cardContainer) return;
+  
+  cardContainer.addEventListener('mousemove', function(e) {
+    const rect = cardContainer.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const width = rect.width;
+    
+    if (x > width * 0.82) {
+      cardContainer.classList.add('flipped');
+    } else {
+      cardContainer.classList.remove('flipped');
+    }
+  });
+  
+  cardContainer.addEventListener('mouseleave', function() {
+    cardContainer.classList.remove('flipped');
+  });
+})();
 </script>
 </body>
 </html>
