@@ -1178,6 +1178,96 @@ body {
   font-weight: 600;
   margin-left: 4px;
 }
+
+/* MOBILE SMARTPHONE RESPONSIVE STYLING */
+@media (max-width: 768px) {
+  #app {
+    flex-direction: column-reverse !important;
+  }
+  #icon-bar {
+    width: 100% !important;
+    height: 60px !important;
+    flex-direction: row !important;
+    justify-content: space-around !important;
+    padding: 0 10px !important;
+    border-right: none !important;
+    border-top: 1px solid var(--border) !important;
+    background: rgba(18,8,8,0.96) !important;
+    flex-shrink: 0 !important;
+  }
+  #icon-bar .spacer,
+  #icon-bar .divider {
+    display: none !important;
+  }
+  .icon-btn {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 20px !important;
+  }
+  .icon-btn .tooltip {
+    display: none !important;
+  }
+  #drawer {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: calc(100% - 60px) !important;
+    z-index: 99 !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    transform: translateY(100%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s !important;
+  }
+  #drawer.open {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    pointer-events: all !important;
+  }
+  #drawer-resize-handle {
+    display: none !important;
+  }
+  #center {
+    height: calc(100% - 60px) !important;
+    width: 100% !important;
+    padding: 10px !important;
+    box-sizing: border-box !important;
+  }
+  #timer-card {
+    width: 100% !important;
+    max-width: 300px !important;
+    padding: 16px !important;
+  }
+  #timer-svg {
+    width: 200px !important;
+    height: 200px !important;
+  }
+  #slide-prev, #slide-next {
+    bottom: 80px !important;
+  }
+  #slide-prev { left: 40% !important; }
+  #slide-next { left: 60% !important; }
+  #slide-upload-btn {
+    bottom: 80px !important;
+    right: 16px !important;
+  }
+  .fb-card {
+    width: 92% !important;
+    max-width: 340px !important;
+    padding: 18px !important;
+  }
+  .fb-overlay {
+    padding: 8px !important;
+  }
+  .fb-badge {
+    top: 10px !important;
+    right: 10px !important;
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+  }
+}
 </style>
 <!-- Firebase v8 Compatibility Scripts -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
