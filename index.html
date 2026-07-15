@@ -1390,6 +1390,9 @@ body {
     <button class="icon-btn" id="btn-chat" onclick="openDrawer('chat')">
       💬<span class="tooltip">Encrypted Chat</span>
     </button>
+    <button class="icon-btn" id="btn-profile" onclick="openDrawer('profile')">
+      👤<span class="tooltip">My Profile</span>
+    </button>
     <div class="spacer"></div>
     <div class="divider"></div>
     <button class="icon-btn" onclick="document.getElementById('photo-file-input').click()">
@@ -1661,9 +1664,33 @@ body {
             </div>
           </div>
 
+      <!-- PROFILE MODULE -->
+      <div class="drawer-module" id="mod-profile">
+        <div class="drawer-header">
+          <h3>👤 My Profile</h3>
+          <button class="drawer-close" onclick="closeDrawer()">✕</button>
+        </div>
+        <div class="math-body" style="display: flex; flex-direction: column; align-items: center; padding: 24px 16px; gap: 20px;">
+          <!-- Profile Pic Container -->
+          <div style="position: relative; width: 100px; height: 100px; margin-bottom: 10px;">
+            <img id="profile-pic-img" src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); box-shadow: 0 0 12px var(--accent-glow);">
+            <button class="nano-btn" onclick="document.getElementById('profile-pic-input').click()" style="position: absolute; bottom: 0; right: 0; padding: 0; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1;">📷</button>
+          </div>
+          <input type="file" id="profile-pic-input" accept="image/*" style="display: none;" onchange="uploadProfilePic(event)">
+          
+          <!-- Nickname / Name Input -->
+          <div class="fb-input-group" style="width: 100%;">
+            <label>My Nickname</label>
+            <input type="text" id="profile-name-input" class="fb-input" placeholder="Patrick Bateman" oninput="updateProfileName(this.value)">
+          </div>
+          
+          <!-- User Email -->
+          <div style="font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 10px;">
+            Signed in as: <span id="profile-email-text" style="color: var(--text);">guest@unreserved.com</span>
+          </div>
         </div>
       </div>
-
+      
     </div>
   </div>
 
@@ -2901,7 +2928,8 @@ function plotElLayout(divId, layout) {
 let chatRoomRef = null;
 let chatUsersRef = null;
 let chatMsgsRef = null;
-let chatNickname = "";
+let chatNickname = localStorage.getItem('unreserved_profile_name') || "";
+let chatPhotoURL = localStorage.getItem('unreserved_profile_pic') || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
 let chatUserStatus = "";
 
 function initChatDrawerForSession() {
@@ -2961,10 +2989,14 @@ function autoJoinChatRoom() {
       return chatUsersRef.set({
         name: chatNickname,
         email: email,
+        photoURL: chatPhotoURL,
         status: initialStatus
       });
     } else {
-      return chatUsersRef.child('name').set(chatNickname);
+      return chatUsersRef.update({
+        name: chatNickname,
+        photoURL: chatPhotoURL
+      });
     }
   }).then(() => {
     chatUsersRef.child('status').on('value', snap => {
@@ -3031,9 +3063,19 @@ function listenToRoomMessages() {
         decryptedText = "🔒 [Decryption Error]";
       }
       
+      const currentUser = firebase.auth().currentUser;
+      const isMine = (currentUser && msg.uid) ? (msg.uid === currentUser.uid) : (nickname === chatNickname);
+      const photoURL = msg.photoURL || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y";
+      
       const msgRow = document.createElement('div');
-      const isMine = (nickname === chatNickname);
-      msgRow.style.cssText = `display: flex; flex-direction: column; align-self: ${isMine ? 'flex-end' : 'flex-start'}; max-width: 80%;`;
+      msgRow.style.cssText = `display: flex; gap: 8px; align-self: ${isMine ? 'flex-end' : 'flex-start'}; max-width: 85%; margin-bottom: 6px; flex-direction: ${isMine ? 'row-reverse' : 'row'}; align-items: flex-start;`;
+      
+      const avatar = document.createElement('img');
+      avatar.src = photoURL;
+      avatar.style.cssText = `width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); object-fit: cover; flex-shrink: 0;`;
+      
+      const contentCol = document.createElement('div');
+      contentCol.style.cssText = `display: flex; flex-direction: column; align-items: ${isMine ? 'flex-end' : 'flex-start'};`;
       
       const header = document.createElement('div');
       header.style.cssText = `font-size: 10px; color: var(--text-dim); margin-bottom: 2px; text-align: ${isMine ? 'right' : 'left'}`;
@@ -3044,8 +3086,11 @@ function listenToRoomMessages() {
                              `background: ${isMine ? 'var(--accent-glow)' : 'var(--surface)'}; color: var(--text); font-size: 12px; word-break: break-word;`;
       bubble.textContent = decryptedText;
       
-      msgRow.appendChild(header);
-      msgRow.appendChild(bubble);
+      contentCol.appendChild(header);
+      contentCol.appendChild(bubble);
+      
+      msgRow.appendChild(avatar);
+      msgRow.appendChild(contentCol);
       container.appendChild(msgRow);
     });
     
@@ -3068,8 +3113,11 @@ function sendChatMessage() {
     return;
   }
   
+  const currentUser = firebase.auth().currentUser;
   chatMsgsRef.push({
+    uid: currentUser ? currentUser.uid : "",
     nickname: chatNickname,
+    photoURL: chatPhotoURL,
     text: ciphertext,
     timestamp: firebase.database.ServerValue.TIMESTAMP
   });
@@ -3138,6 +3186,55 @@ function clearRoomHistory() {
     chatMsgsRef.set(null);
   }
 }
+
+// Profile Actions
+function uploadProfilePic(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const base64 = e.target.result;
+    if (base64.length > 500000) {
+      alert("Image is too large. Please select a smaller photo (under 300KB).");
+      return;
+    }
+    chatPhotoURL = base64;
+    localStorage.setItem('unreserved_profile_pic', chatPhotoURL);
+    document.getElementById('profile-pic-img').src = chatPhotoURL;
+    
+    if (chatUsersRef) {
+      chatUsersRef.child('photoURL').set(chatPhotoURL);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function updateProfileName(val) {
+  chatNickname = val.trim();
+  localStorage.setItem('unreserved_profile_name', chatNickname);
+  if (chatUsersRef) {
+    chatUsersRef.child('name').set(chatNickname);
+  }
+}
+
+firebase.auth().onAuthStateChanged(u => {
+  if (u) {
+    document.getElementById('profile-email-text').textContent = u.email || "guest@unreserved.com";
+    if (!chatNickname) {
+      if (u.displayName) {
+        chatNickname = u.displayName;
+      } else if (u.email) {
+        chatNickname = u.email.split('@')[0];
+      } else {
+        chatNickname = "Guest-" + u.uid.substring(0, 4);
+      }
+      localStorage.setItem('unreserved_profile_name', chatNickname);
+    }
+    document.getElementById('profile-name-input').value = chatNickname;
+    document.getElementById('profile-pic-img').src = chatPhotoURL;
+  }
+});
 </script>
 </body>
 </html>
