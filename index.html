@@ -1240,9 +1240,19 @@ body {
     max-width: 300px !important;
     padding: 16px !important;
   }
+  #ring-wrap {
+    width: 220px !important;
+    height: 220px !important;
+  }
   #timer-svg {
-    width: 200px !important;
-    height: 200px !important;
+    width: 220px !important;
+    height: 220px !important;
+  }
+  #timer-display {
+    font-size: 52px !important;
+  }
+  #ap-overlays {
+    display: none !important;
   }
   #slide-prev, #slide-next {
     bottom: 80px !important;
@@ -1952,10 +1962,15 @@ function handleAuthSubmit() {
 
 function handleGoogleSignIn() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(provider)
-    .catch(err => {
-      alert("Google sign-in failed: " + err.message);
-    });
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (isMobile) {
+    firebase.auth().signInWithRedirect(provider);
+  } else {
+    firebase.auth().signInWithPopup(provider)
+      .catch(err => {
+        alert("Google sign-in failed: " + err.message + "\n\nNote: If hosting on GitHub Pages, make sure 'hacked2210.github.io' is added to Authorized Domains in your Firebase console under Authentication -> Settings -> Authorized Domains.");
+      });
+  }
 }
 
 function handleAnonSignIn() {
